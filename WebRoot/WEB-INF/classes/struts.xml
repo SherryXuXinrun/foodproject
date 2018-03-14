@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+     <constant name="struts.i18n.encoding" value="utf-8"/>
+     <constant name="struts.devMode" value="true" />
+     <constant name="struts.ui.theme" value="simple" />
+     <!--Struts2中Action对象的创建交给spring完成-->
+     <constant name="struts.objectFactory" value="spring" />  
+     
+     <package name="default" extends="struts-default">  <!-- 注意此包的写法 -->
+         <!-- 配置一个拦截器 -->
+	     <interceptors>
+	        <!-- 拦截器对应的class是 com.food.util.LoginInterceptors-->   
+	        <interceptor name="LoginInterceptors" class="com.food.util.LoginInterceptors">
+	           <!-- excludeName 是例外的action，也就是下面这几个action不会被拦截--> 
+	           <param name="excludeName">customer_login,customer_reg</param>
+	           <!-- customer可以作为参数传递，取自session.put("customer", db_customer);中的这个customer-->
+	           <param name="sessionName">customer</param>
+	        </interceptor>    
+	        <!-- 定义拦截器 栈，用来放拦截器，其中LoginInterceptors是登录拦截器，也就是我们自定义的这个拦截器，
+	             defaultStack是struts默认拦截器，必须加上，否则struts自带的很多功能就没法用，比如传参--> 
+	        <interceptor-stack name="myInterceptors">
+	           <interceptor-ref name="defaultStack"></interceptor-ref>   
+	           <interceptor-ref name="LoginInterceptors"/>                  
+	        </interceptor-stack>      
+	     </interceptors>
+	     <!-- 将上面的拦截器栈作为这个工程的拦截器，也就是自定义的登录拦截器和 struts默认拦截器都起作用-->
+	     <default-interceptor-ref name="myInterceptors"></default-interceptor-ref>
+	     <!-- 适用于所有的action -->
+	     <global-results>
+	          <result name="login" type="redirect">/login.jsp</result>
+	          <result name="success" type="redirect">${prePage}</result> 
+	     </global-results>
+     </package>
+     
+     <!-- 注意 extends="default" ，与上一讲已经不同，"default"是拦截器的name，以下这几个package
+                             要继承自"default"才可以使用拦截器，否则拦截器对他们不起作用，切记切记
+     -->
+     <package name="food" namespace="/food" extends="default" >
+        <action name="food_*" class="foodAction" method="{1}">
+            <result name="message">/message.jsp</result>
+        	<result name="show_view">/main.jsp</result>
+        	<result name="detail_view">/detail.jsp</result>
+        	<result name="edit_view">/edit.jsp</result>
+        	<result name="delete_message">/delete_message.jsp</result>
+        	<result name="edit_message">/edit_message.jsp</result>
+        </action>
+	 </package> 
+	 
+	 <!-- 注意 extends="default" ，与上一讲已经不同，"default"是拦截器的name，以下这几个package
+                             要继承自"default"才可以使用拦截器，否则拦截器对他们不起作用，切记切记
+     -->
+	  <package name="customer" namespace="/customer" extends="default" >
+        <action name="customer_*" class="customerAction" method="{1}">
+            <result name="show_view" type="chain">
+              <param name="actionName">food_showFood</param> 
+                 <param name="namespace">/food</param>
+                 <param name="param1">${customer.name}</param>
+            </result>
+            <result name="input">/login.jsp</result>
+
+        </action>  
+	 </package> 
+	 
+	 <!-- 注意 extends="default" ，与上一讲已经不同，"default"是拦截器的name，以下这几个package
+                             要继承自"default"才可以使用拦截器，否则拦截器对他们不起作用，切记切记
+     -->
+	 <package name="order" namespace="/order" extends="default" >
+        <action name="order_*" class="orderAction" method="{1}">
+            <result name="order_message">/order_message.jsp</result>
+            <result name="show_view">/order_main.jsp</result>
+            <result name="detail_view">/order_detail.jsp</result>
+        </action>  
+	 </package> 
+       
+         	 
+</struts>
